@@ -28,35 +28,38 @@ def create_scraper_guard(disallowed_domains):
 
     return guard
 
-def filter_valid_links(file_path, disallowed_domains):
+def filter_valid_links(input_links, disallowed_domains):
     """
-    Valida e filtra links extraídos de um arquivo, removendo links de domínios proibidos.
+    Valida e filtra links, removendo links de domínios proibidos.
 
     Args:
-        file_path (str): Caminho do arquivo contendo os links.
+        input_links (str or list): Caminho do arquivo ou lista de links para filtrar.
         disallowed_domains (list): Lista de domínios proibidos.
 
     Returns:
-        list: Lista de links permitidos.
+        list: Lista de links válidos.
     """
+    links = []
+    
+    # Se input_links for uma string, assume que é um caminho de arquivo
+    if isinstance(input_links, str):
+        try:
+            with open(input_links, 'r') as f:
+                links = [line.strip() for line in f.readlines() if line.strip()]
+        except FileNotFoundError:
+            print(f"❌ Arquivo {input_links} não encontrado!")
+            return []
+    else:
+        # Se não for string, assume que é uma lista
+        links = [link.strip() for link in input_links if link.strip()]
+
+    # Filtrar links proibidos
     filtered_links = []
-    try:
-        # Lê o conteúdo do arquivo
-        with open(file_path, 'r') as f:
-            links = [line.strip() for line in f.readlines() if line.strip()]
-
-        # Regex para capturar links proibidos
-        disallowed_pattern = re.compile(f"({'|'.join(re.escape(domain) for domain in disallowed_domains)})")
-
-        # Filtrar links proibidos
-        for link in links:
-            if not disallowed_pattern.search(link):  # Apenas links que não correspondem ao padrão proibido
-                filtered_links.append(link)
-            else:
-                print(f"🚫 Link proibido ignorado: {link}")
-
-    except FileNotFoundError:
-        print(f"❌ Arquivo {file_path} não encontrado!")
+    for link in links:
+        if not any(domain in link for domain in disallowed_domains):
+            filtered_links.append(link)
+        else:
+            print(f"🚫 Link proibido ignorado: {link}")
 
     return filtered_links
 

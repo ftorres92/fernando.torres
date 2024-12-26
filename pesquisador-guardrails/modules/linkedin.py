@@ -1,29 +1,64 @@
 from crewai import Agent, Task
 import os
 
+def combine_content_files(output_dir):
+    """Combina o conteúdo dos arquivos em um único arquivo"""
+    combined_content = ""
+    combined_file = os.path.join(output_dir, "combined_content.md")
+    
+    try:
+        # Ler noticias.md
+        noticias_path = os.path.join(output_dir, "noticias_raw.md")
+        if os.path.exists(noticias_path):
+            with open(noticias_path, 'r', encoding='utf-8') as f:
+                combined_content += "### CONTEÚDO DAS NOTÍCIAS:\n" + f.read() + "\n\n"
+                
+        # Ler scrap.md
+        scrap_path = os.path.join(output_dir, "scrap.md")
+        if os.path.exists(scrap_path):
+            with open(scrap_path, 'r', encoding='utf-8') as f:
+                combined_content += "### CONTEÚDO DETALHADO:\n" + f.read()
+        
+        # Salvar conteúdo combinado
+        if combined_content:
+            with open(combined_file, 'w', encoding='utf-8') as f:
+                f.write(combined_content)
+            return combined_file
+                
+    except Exception as e:
+        print(f"Erro ao combinar arquivos: {e}")
+        return None
+
 def create_linkedin_agent(tema, model_name):
     return Agent(
-        role=f"Analisar o conteúdo encontrado e armazenado em <'notícias.md'> e <scrap.md> e criar texto bem feito e bem escrito sobre {tema}",
-        goal=f"Escrever uma postagem sobre o {tema} especificamente para ser utilizada no LINKEDIN, focando em leis, doutrinas e jurisprudência mencionadas",
+        role=f"Criar um texto jurídico original baseado em múltiplas fontes",
+        goal=f"Escrever um artigo único e original sobre {tema}, sintetizando diferentes fontes e destacando insights jurídicos relevantes",
         verbose=True,
         memory=True,
-        backstory="""Você é um especialista em comunicação, focado na rede social LinkedIn, com uma habilidade única para transformar informações complexas em conteúdos acessíveis e atraentes. 
-        Com uma sólida experiência jurídica e também em marketing digital, você entende a importância de se conectar com a audiência certa através de mensagens claras e persuasivas.""",
+        backstory="""Você é um advogado renomado e autor de artigos jurídicos influentes. 
+        Sua especialidade é criar conteúdo original que sintetiza diferentes fontes de informação,
+        oferecendo uma perspectiva única e valiosa sobre temas jurídicos complexos.
+        Seu texto deve ser completamente original, evitando repetir exatamente o que está nas fontes.""",
         llm=model_name,
     )
 
 def create_linkedin_task(tema, output_dir, agent):
+    # Combinar arquivos
+    combined_file = combine_content_files(output_dir)
+    
+    if not combined_file or not os.path.exists(combined_file):
+        raise ValueError("Não foi possível criar o arquivo combinado de conteúdo")
+
+    # Ler o conteúdo combinado
+    with open(combined_file, 'r', encoding='utf-8') as f:
+        content = f.read()
+
     return Task(
         description=(
-            "Analise as notícias mais recentes fornecidas pelo Pesquisador e pelo scraper. "
-            "Desenvolva um texto informativo e interessante sobre o tema para ser utilizado para o LINKEDIN. "
-            "O texto deve destacar os pontos mais relevantes das notícias, mencionar jurisprudência, leis e doutrinas encontradas. "
-            "Ser informativo, envolvente e adequado ao ambiente jurídico, sempre pensando em viralizar aos leitores em razão de seu conteúdo."
+            f"Analise o seguinte conteúdo e crie um artigo original sobre {tema}:\n\n{content}\n\n"
         ),
         expected_output=(
-            "Um Post sobre temas jurídicos pronto para publicação no LINKEDIN "
-            "que resuma e destaque as notícias analisadas de forma clara e impactante, "
-            "com foco em gerar engajamento e discussão entre os profissionais da rede."
+            "Um artigo jurídico original que sintetize as fontes e ofereça insights únicos, mas sem inventar qualquer informação"
         ),
         agent=agent,
         output_file=os.path.join(output_dir, "post_linkedin.md"),

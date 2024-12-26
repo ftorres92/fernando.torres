@@ -34,3 +34,23 @@ def create_pesquisa_task(tema, output_dir, agent):
         agent=agent,
     )
 
+# utils/guardrails.py
+
+def filter_valid_links(links, disallowed_domains):
+    """
+    Filtra links proibidos com base nos domínios fornecidos.
+
+    Args:
+        links (list): Lista de links para filtrar.
+        disallowed_domains (list): Lista de domínios proibidos.
+
+    Returns:
+        list: Lista de links válidos.
+    """
+    valid_links = []
+    for link in links:
+        if not any(disallowed_domain in link for disallowed_domain in disallowed_domains):
+            valid_links.append(link)
+    return valid_links
+
+

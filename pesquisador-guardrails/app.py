@@ -8,6 +8,8 @@ from modules.instagram import create_instagram_agent, create_instagram_task
 from crewai import Crew, Process
 from utils.guardrails import validate_output_with_guardrails, filter_valid_links
 from time import sleep
+import sys
+
 
 # Carregar variáveis de ambiente
 load_dotenv()
@@ -15,7 +17,7 @@ load_dotenv()
 # Constantes
 output_dir = "Docscriados"
 model_name = "gpt-4o-mini"
-disallowed_domains = ["www.youtube.com", "www.jusbrasil.com", "gov.br"]  # Domínios proibidos
+disallowed_domains = ["www.youtube.com", "www.jusbrasil.com", "gov.br", "www.mpf.mp.br"]  # Domínios proibidos
 
 # Interface do Streamlit
 st.title("Pesquisa Direito - JuristIA (Beta)")
@@ -68,7 +70,7 @@ if st.button("Iniciar Pesquisa e Criar Conteúdo"):
 
                         # Filtrar links proibidos
                         status_placeholder.info("🛠️ Filtrando links proibidos...")
-                        filtered_links = filter_valid_links(raw_file, disallowed_domains)
+                        filtered_links = filter_valid_links(validated_noticias.split('\n'), disallowed_domains)
                         if filtered_links:
                             with open(filtered_file, 'w') as f:
                                 f.write('\n'.join(filtered_links))
@@ -76,9 +78,10 @@ if st.button("Iniciar Pesquisa e Criar Conteúdo"):
                             st.warning("⚠️ Nenhum link permitido foi encontrado após o filtro.")
 
                         # Adicionar tarefa do Scraper após validação
-                        if os.path.exists(filtered_file):
+                        if filtered_links:
                             status_placeholder.info("🚀 Scraper iniciando o processamento dos links filtrados...")
-                            tarefa_scrap = create_scrap_task(tema, output_dir, scraper, filtered_file)
+                            tarefa_scrap = create_scrap_task(tema, output_dir, scraper, filtered_links, disallowed_domains)
+
                             pesquisa_scrap_crew.tasks.append(tarefa_scrap)
 
                             # Executar Scraper
@@ -132,3 +135,9 @@ if st.button("Iniciar Pesquisa e Criar Conteúdo"):
 
         except Exception as e:
             st.error(f"❌ Ocorreu um erro: {e}")
+
+sys.stdout = sys.__stdout__
+sys.stderr = sys.__stderr__
+
+# Agora tudo será exibido novamente no terminal
+print("Saída restaurada para o terminal.")
