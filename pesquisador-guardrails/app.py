@@ -17,7 +17,17 @@ load_dotenv()
 # Constantes
 output_dir = "Docscriados"
 model_name = "gpt-4o-mini"
+gpt4o = "gpt4o"
+o3mini = "o3-mini"
+
 disallowed_domains = ["www.youtube.com", "www.jusbrasil.com", "gov.br", "www.mpf.mp.br"]  # Domínios proibidos
+
+st.markdown("""
+    <style>
+        .main { padding: 2rem; }
+        .stTitle { color: #1E3D59; }
+    </style>
+""", unsafe_allow_html=True)
 
 # Interface do Streamlit
 st.title("Pesquisa Direito - JuristIA (Beta)")

@@ -29,7 +29,7 @@ def combine_content_files(output_dir):
         print(f"Erro ao combinar arquivos: {e}")
         return None
 
-def create_linkedin_agent(tema, model_name):
+def create_linkedin_agent(tema, o3mini):
     return Agent(
         role=f"Criar um texto jurídico original baseado em múltiplas fontes",
         goal=f"Escrever um artigo único e original sobre {tema}, sintetizando diferentes fontes e destacando insights jurídicos relevantes",
@@ -39,7 +39,7 @@ def create_linkedin_agent(tema, model_name):
         Sua especialidade é criar conteúdo original que sintetiza diferentes fontes de informação,
         oferecendo uma perspectiva única e valiosa sobre temas jurídicos complexos.
         Seu texto deve ser completamente original, evitando repetir exatamente o que está nas fontes.""",
-        llm=model_name,
+        llm=o3mini,
     )
 
 def create_linkedin_task(tema, output_dir, agent):
